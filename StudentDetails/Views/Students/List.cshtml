@@ -1,0 +1,93 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+@* @model List<StudentDetails.Models.Entity.Student> *@
+
+@{
+}
+
+
+<h1>Students</h1>
+
+
+
+<table class="table" id="tblStudent"> 
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th> </th>
+        </tr>
+    </thead>
+    <tbody id="tabledata">
+        @* @foreach(var student in Model)
+        {
+            <tr>
+                <td>@student.Id</td>
+                <td>@student.Name</td>
+                <td>@student.Email</td>
+                <td>
+                    <a class="btn btn-primary" onclick="editStudent('@student.Id')">Edit</a>
+                </td>
+            </tr>
+        } *@
+        
+
+    </tbody>
+</table>
+<script>
+   
+    function editStudent(studentId) {
+        console.log('Edit button clicked for student ID:', studentId);
+        window.location.href = 'Edit/' + studentId;
+    }
+
+    
+    const accessToken = localStorage.getItem('accessToken');
+    
+        fetch("https://localhost:44390/api/List", {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            },
+            body: JSON.stringify()
+        })
+            .then(response => {
+                if (!response.ok) {
+                window.location.href = '@Url.Action("Login", "Students")';
+                }
+
+                return response.json();
+            })
+            .then(data => {
+                const tbody = document.querySelector('#tabledata')
+                let str = ""
+                data.forEach(user => {
+                    str += `<tr>
+                               <td>${user.id}</td>
+                               <td>${user.name}</td>
+                               <td>${user.email}</td>
+                               <td>
+                                   <a class="btn btn-primary" onclick="editStudent('${user.id}')">Edit</a>
+                               </td>
+                    </tr>
+                    `;
+                });
+                tbody.innerHTML = str,
+
+                    console.log(data);
+            })
+            .catch(error => {
+           window.location.href = '@Url.Action("Login", "Students")';
+                console.error('Error:', error);
+            });
+
+    
+       
+</script>

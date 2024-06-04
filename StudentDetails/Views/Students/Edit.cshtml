@@ -1,0 +1,230 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+@model StudentDetails.Models.Entity.Student
+<h1> Edit Student</h1>
+
+
+
+
+
+
+    <!--    <form method="post">-->
+        <div class="mt-3">
+            <label class="form-label">Id</label>
+            <input type="text" class="form-control" asp-for="Id" readonly />
+        </div>
+        <div class="mt-3">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-control" asp-for="Name" />
+            <span class="error-message" id="name-error"></span>
+        </div>
+
+        <div class="mt-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" asp-for="Email" />
+            <span class="error-message" id="email-error"></span>
+        </div>
+
+        <div class="mt-3">
+            <label class="form-label">Phone</label>
+            <input type="text" class="form-control" asp-for="Phone" />
+            <span class="error-message" id="phone-error"></span>
+        </div>
+
+        <div class="mt-3">
+            <input type="checkbox" class="form-check-input" id="Subscribed" asp-for="Subscribed" />
+            <label class="form-check-label" for="Subscribed">Subscribed</label>
+        </div>
+
+        <div class="mt-3">
+        <button type="submit" class="btn btn-primary" onclick="updateStudent()">Save</button>
+            <button type="submit" class="btn btn-danger ms-3"
+                  asp-action="Delete"
+            asp-controller="Students" onclick="deleteStudent()">Delete</button>
+        </div>
+
+  <!--      </form>
+    -->
+<style>
+    .error-message {
+        color: red;
+        font-size: 12px;
+        display: block;
+    }
+
+    .invalid-input {
+        border: 1px solid red;
+    }
+
+</style>
+
+    <script>
+ 
+
+    window.onload = function () {
+        fetchStudentData();
+    };
+    var accesstoken = localStorage.getItem('accessToken');
+
+    function fetchStudentData() {
+        var studentId = document.getElementById("Id").value;
+        
+      
+        fetch("https://localhost:44390/api/StudentAPI?Id=" + studentId,{
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accesstoken}`
+            },
+            body: JSON.stringify()
+        })
+
+            .then(response => {
+                if (!response.ok) {
+                    window.location.href = '@Url.Action("Login", "Students")';
+                }
+                return response.json();
+            })
+            .then(studentData => {
+                
+                document.getElementById("Name").value = studentData.name;
+                document.getElementById("Email").value = studentData.email;
+                document.getElementById("Phone").value = studentData.phone;
+                document.getElementById("Subscribed").checked = studentData.subscribed;
+
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+    function updateStudent() {
+        
+
+        var nameInput = document.getElementById("Name");
+        var emailInput = document.getElementById("Email");
+        var phoneInput = document.getElementById("Phone");
+
+        var name = nameInput.value.trim();
+        var email = emailInput.value.trim();
+        var phone = phoneInput.value.trim();
+        var subscribed = document.getElementById("Subscribed").checked;
+
+        nameInput.classList.remove("invalid-input");
+        emailInput.classList.remove("invalid-input");
+        phoneInput.classList.remove("invalid-input");
+
+        document.getElementById("name-error").innerText = "";
+        document.getElementById("email-error").innerText = "";
+        document.getElementById("phone-error").innerText = "";
+
+        var specialCharacters = /[!#$%^&*()_+{}\[\]:;<>,.?~\\/-]/;
+
+        if (!name) {
+            nameInput.classList.add("invalid-input");
+            document.getElementById("name-error").innerText = "Name is required.";
+
+
+        }
+        else if (name.length < 3) {
+            nameInput.classList.add("invalid-input");
+            document.getElementById("name-error").innerText = "Name must be at least 3 characters long.";
+            return;
+        }
+        else if (specialCharacters.test(name)) {
+            nameInput.classList.add("invalid-input");
+            document.getElementById("name-error").innerText = "Special characters are not allowed.";
+            return;
+        }
+
+        if (!email) {
+            emailInput.classList.add("invalid-input");
+            document.getElementById("email-error").innerText = "Email is required.";
+        }
+
+        if (!phone) {
+            phoneInput.classList.add("invalid-input");
+            document.getElementById("phone-error").innerText = "Phone is required.";
+        }
+
+        var emailVerify = /^[a-zA-Z0-9_]+@@[a-zA-Z]+\.[a-zA-Z]{2,}$/;
+        if (!emailVerify.test(email)) {
+            emailInput.classList.add("invalid-input");
+            document.getElementById("email-error").innerText = "Email is not valid.";
+            return;
+        }
+
+        var phoneFormat = /^[6-9]\d{9}$/;
+        if (!phoneFormat.test(phone)) {
+            phoneInput.classList.add("invalid-input");
+            document.getElementById("phone-error").innerText = "Phone number is not valid.";
+            return;
+        }
+
+        var studentId = document.getElementById("Id").value;
+        var updatedStudentData = {
+            Id: studentId,
+            Name: document.getElementById("Name").value,
+            Email: document.getElementById("Email").value,
+            Phone: document.getElementById("Phone").value,
+            Subscribed: document.getElementById("Subscribed").checked
+        };
+
+        fetch("https://localhost:44390/api/StudentAPI?Id=" + studentId, {
+            method: 'PUT',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accesstoken}`
+            },
+            body: JSON.stringify(updatedStudentData),
+        })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '@Url.Action("List", "Students")';
+                    console.log(data);
+                   
+                } else {
+                    console.error('Error:', response.statusText);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+
+        function deleteStudent() {
+        var studentId = document.getElementById("Id").value;
+
+        fetch("https://localhost:44390/api/StudentAPI?Id=" + studentId, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accesstoken}`
+            },
+            body: JSON.stringify(),
+
+        })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '@Url.Action("List", "Students")';
+                    console.log(data);
+                   
+                } else {
+                    console.error('Error:', response.statusText);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+       
+    </script>
+}
